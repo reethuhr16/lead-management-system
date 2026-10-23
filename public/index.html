@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swan Leads</title>
+<style>
+:root{--bg:#f4f6f7;--card:#fff;--ink:#14212b;--mute:#62737f;--line:#dde3e7;--acc:#0b7a83;--accd:#085a61;--danger:#b3261e;
+--New:#3b6fd4;--Contacted:#c77d0a;--Qualified:#7a4fc4;--Converted:#1b8a4b;--Lost:#8a949b}
+@media(prefers-color-scheme:dark){:root{--bg:#0f171d;--card:#17222a;--ink:#e8eef2;--mute:#92a3af;--line:#2a3944;--acc:#3fb7c1;--accd:#6fd0d8;--danger:#ff8a80}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:6px;cursor:pointer}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}.btn.pri:hover{background:var(--accd)}
+.btn.del{color:var(--danger)}.btn:disabled{opacity:.5;cursor:default}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card)}
+label{display:block;font-size:13px;color:var(--mute);margin-bottom:10px}label input,label select,label textarea{margin-top:4px;color:var(--ink)}
+.err{color:var(--danger);font-size:13px;min-height:1em}
+.hide{display:none!important}
+#auth{max-width:380px;margin:12vh auto;padding:0 16px}
+#auth form{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px}
+#auth h1{margin:0 0 4px;font-size:26px;letter-spacing:-.02em}#auth p{margin:0 0 18px;color:var(--mute)}
+#auth .sw{background:none;border:0;color:var(--acc);cursor:pointer;margin-top:12px;padding:0}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header b{font-size:18px;letter-spacing:-.02em}header span{color:var(--mute);font-size:13px}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;border-left:4px solid var(--c,var(--acc))}
+.stat small{color:var(--mute)}.stat div{font-size:26px;font-weight:650}
+.charts{display:grid;grid-template-columns:1fr 2fr;gap:12px;margin-bottom:20px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}.panel h2{font-size:14px;margin:0 0 8px;color:var(--mute);font-weight:600}
+.chartbox{position:relative;height:200px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.bar input,.bar select{flex:1 1 150px;width:auto}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px}
+table{width:100%;border-collapse:collapse;min-width:720px}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--mute);font-weight:600}tr:last-child td{border-bottom:0}td small{color:var(--mute);display:block}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;color:#fff;background:var(--c)}
+.act{white-space:nowrap}.act .btn{padding:4px 10px;font-size:13px}
+.empty{padding:36px;text-align:center;color:var(--mute)}
+.pg{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--mute)}.pg div{display:flex;gap:8px}
+dialog{border:1px solid var(--line);border-radius:10px;padding:20px;width:min(520px,94vw);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.45)}.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:6px;z-index:20}
+@media(max-width:720px){.charts{grid-template-columns:1fr}.g2{grid-template-columns:1fr}header span{display:none}}
+@media(prefers-reduced-motion:no-preference){.stat{transition:transform .15s}.stat:hover{transform:translateY(-1px)}}
+</style></head><body>
+<section id="auth" class="hide"><form id="af" novalidate>
+<h1>Swan Leads</h1><p id="atag">Sign in to manage your pipeline.</p>
+<label id="nl" class="hide">Name<input name="name" autocomplete="name"></label>
+<label>Email<input name="email" type="email" autocomplete="email" required></label>
+<label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+<div class="err" id="aerr" role="alert"></div>
+<button class="btn pri" style="width:100%" id="asub">Sign in</button>
+<button type="button" class="sw" id="asw">Need an account? Register</button>
+</form></section>
+
+<div id="app" class="hide">
+<header><div><b>Swan Leads</b> <span id="who"></span></div><div><button class="btn" id="exp">Export CSV</button> <button class="btn" id="out">Log out</button></div></header>
+<main>
+<div class="stats" id="stats"></div>
+<div class="charts"><div class="panel"><h2>Leads by status</h2><div class="chartbox"><canvas id="c1"></canvas></div></div>
+<div class="panel"><h2>New leads, last 14 days</h2><div class="chartbox"><canvas id="c2"></canvas></div></div></div>
+<div class="bar">
+<input id="q" type="search" placeholder="Search name, email or phone" aria-label="Search leads">
+<select id="fs" aria-label="Filter by status"><option value="">All statuses</option></select>
+<input id="ff" type="date" aria-label="Created from"><input id="ft" type="date" aria-label="Created to">
+<button class="btn pri" id="add">Add lead</button></div>
+<div class="tw"><table><thead><tr><th>Lead</th><th>Company / service</th><th>Status</th><th>Follow-up</th><th>Created</th><th></th></tr></thead><tbody id="rows"></tbody></table><div id="state"></div></div>
+<div class="pg"><span id="info"></span><div><button class="btn" id="prev">Previous</button><button class="btn" id="next">Next</button></div></div>
+</main></div>
+
+<dialog id="dlg"><form id="lf" novalidate><h2 id="dt" style="margin-top:0">Add lead</h2>
+<div class="g2"><label>Name*<input name="name"></label><label>Email*<input name="email" type="email"></label>
+<label>Phone<input name="phone"></label><label>Company<input name="company"></label>
+<label>Service interested<input name="service" list="sv"></label><label>Status<select name="status" id="st"></select></label></div>
+<datalist id="sv"><option>SEO</option><option>Social Media</option><option>Google Ads</option><option>Web Development</option><option>Branding</option><option>Email Marketing</option></datalist>
+<label>Follow-up date<input name="follow_up_date" type="date"></label>
+<label>Notes<textarea name="notes" rows="3"></textarea></label>
+<div class="err" id="lerr" role="alert"></div>
+<div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn" id="cx">Cancel</button><button class="btn pri" id="sv2">Save lead</button></div></form></dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),ST=['New','Contacted','Qualified','Converted','Lost'];
+const COL={New:'#3b6fd4',Contacted:'#c77d0a',Qualified:'#7a4fc4',Converted:'#1b8a4b',Lost:'#8a949b'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(p,o={}){const r=await fetch('/api'+p,{credentials:'same-origin',headers:{'Content-Type':'application/json'},method:o.method||'GET',body:o.body?JSON.stringify(o.body):undefined});
+ const d=r.status===204?{}:await r.json().catch(()=>({}));
+ if(!r.ok){const e=new Error(d.details?Object.values(d.details).join('. '):d.error||'Request failed');e.status=r.status;throw e}return d}
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),2500)}
+let page=1,pages=1,editId=null,reg=false,charts={},tm;
+$('#fs').innerHTML+=ST.map(s=>`<option>${s}</option>`).join('');$('#st').innerHTML=ST.map(s=>`<option>${s}</option>`).join('');
+
+function showAuth(){$('#app').classList.add('hide');$('#auth').classList.remove('hide')}
+function showApp(u){$('#auth').classList.add('hide');$('#app').classList.remove('hide');$('#who').textContent=`${u.name} · ${u.role}`;refresh()}
+$('#asw').onclick=()=>{reg=!reg;$('#nl').classList.toggle('hide',!reg);$('#asub').textContent=reg?'Create account':'Sign in';
+ $('#asw').textContent=reg?'Have an account? Sign in':'Need an account? Register';$('#atag').textContent=reg?'Create an account to start tracking leads.':'Sign in to manage your pipeline.';$('#aerr').textContent=''};
+$('#af').onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(e.target));$('#asub').disabled=true;
+ try{const d=await api(reg?'/auth/register':'/auth/login',{method:'POST',body:b});e.target.reset();showApp(d.user)}catch(x){$('#aerr').textContent=x.message}
+ $('#asub').disabled=false};
+$('#out').onclick=async()=>{await api('/auth/logout',{method:'POST'});showAuth()};
+
+function params(){const p=new URLSearchParams({page,limit:10});[['q','#q'],['status','#fs'],['from','#ff'],['to','#ft']].forEach(([k,s])=>{if($(s).value)p.set(k,$(s).value)});return p}
+function refresh(){loadStats();loadLeads()}
+async function loadStats(){try{const s=await api('/leads/stats');
+ const items=[['Total leads',s.total,'#0b7a83'],...ST.map(x=>[x+' leads',s.byStatus[x],COL[x]])];
+ $('#stats').innerHTML=items.map(([l,v,c])=>`<div class="stat" style="--c:${c}"><small>${l}</small><div>${v}</div></div>`).join('');
+ const dark=matchMedia('(prefers-color-scheme:dark)').matches,tc=dark?'#92a3af':'#62737f';
+ Object.values(charts).forEach(c=>c.destroy());if(!window.Chart)return;
+ charts.a=new Chart($('#c1'),{type:'doughnut',data:{labels:ST,datasets:[{data:ST.map(x=>s.byStatus[x]),backgroundColor:ST.map(x=>COL[x]),borderWidth:0}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:tc}}}}});
+ charts.b=new Chart($('#c2'),{type:'bar',data:{labels:s.daily.map(d=>d.d.slice(5)),datasets:[{data:s.daily.map(d=>d.c),backgroundColor:'#0b7a83',borderRadius:3}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc}},y:{beginAtZero:true,ticks:{precision:0,color:tc}}}}});
+}catch(e){if(e.status===401)showAuth()}}
+async function loadLeads(){$('#state').innerHTML='<div class="empty">Loading leads…</div>';
+ try{const d=await api('/leads?'+params());pages=d.pages;
+  $('#rows').innerHTML=d.data.map(l=>`<tr><td><b>${esc(l.name)}</b><small>${esc(l.email)}</small><small>${esc(l.phone)}</small></td>
+  <td>${esc(l.company)||'—'}<small>${esc(l.service)}</small></td><td><span class="pill" style="--c:${COL[l.status]}">${l.status}</span></td>
+  <td>${esc(l.follow_up_date)||'—'}</td><td>${esc(l.created_at.slice(0,10))}</td>
+  <td class="act"><button class="btn" data-e="${l.id}">Edit</button> <button class="btn del" data-d="${l.id}">Delete</button></td></tr>`).join('');
+  $('#state').innerHTML=d.data.length?'':'<div class="empty">No leads match. Add a lead or clear the filters.</div>';
+  $('#info').textContent=`${d.total} lead${d.total===1?'':'s'} · page ${d.page} of ${d.pages}`;
+  $('#prev').disabled=page<=1;$('#next').disabled=page>=pages;
+ }catch(e){if(e.status===401)return showAuth();$('#rows').innerHTML='';$('#state').innerHTML=`<div class="empty">Could not load leads: ${esc(e.message)}. <button class="btn" onclick="loadLeads()">Retry</button></div>`}}
+$('#prev').onclick=()=>{page--;loadLeads()};$('#next').onclick=()=>{page++;loadLeads()};
+$('#q').oninput=()=>{clearTimeout(tm);tm=setTimeout(()=>{page=1;loadLeads()},300)};
+['#fs','#ff','#ft'].forEach(s=>$(s).onchange=()=>{page=1;loadLeads()});
+$('#exp').onclick=()=>{const p=params();p.delete('page');p.delete('limit');location.href='/api/leads/export.csv?'+p};
+
+function openForm(l){editId=l?.id||null;$('#dt').textContent=l?'Edit lead':'Add lead';$('#lerr').textContent='';$('#lf').reset();
+ if(l)for(const k of ['name','email','phone','company','service','status','follow_up_date','notes'])$('#lf').elements[k].value=l[k]||'';$('#dlg').showModal()}
+$('#add').onclick=()=>openForm();$('#cx').onclick=()=>$('#dlg').close();
+$('#rows').onclick=async e=>{const id=e.target.dataset.e||e.target.dataset.d;if(!id)return;
+ try{if(e.target.dataset.e)openForm(await api('/leads/'+id));else if(confirm('Delete this lead? This cannot be undone.')){await api('/leads/'+id,{method:'DELETE'});toast('Lead deleted');refresh()}}catch(x){toast(x.message)}};
+$('#lf').onsubmit=async e=>{e.preventDefault();$('#sv2').disabled=true;
+ try{await api(editId?'/leads/'+editId:'/leads',{method:editId?'PUT':'POST',body:Object.fromEntries(new FormData(e.target))});$('#dlg').close();toast(editId?'Lead updated':'Lead added');refresh()}
+ catch(x){$('#lerr').textContent=x.message}$('#sv2').disabled=false};
+
+api('/auth/me').then(d=>showApp(d.user)).catch(showAuth);
+</script></body></html>
