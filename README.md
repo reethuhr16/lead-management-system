@@ -1,3 +1,6 @@
+**Live demo:** https://your-app.onrender.com
+Login: demo@swan.test / Demo@1234
+
 # Swan Leads — Lead Management System
 
 Full-stack lead tracker for a digital marketing company: authentication, lead CRUD, dashboard with charts, search/filter/pagination, CSV export and role-based access.
